@@ -7,11 +7,17 @@ app.use(express.json()); // this is middleware
 /* Middleware functions are functions that have access to the request object ( req ), the response object
 ( res ), and the next middleware function in the application's request-response cycle */
 
+app.use((req, res, next) => {
+    req.requestTime = new Date().toISOString();
+    next();
+});
+
 const tours = JSON.parse(
     fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, 'utf-8')
 );
 
 const getAllTours = (req, res) => {
+    console.log(req.requestTime);
     res.status(200).json({
         status: 'success',
         results: tours.length, // metadata if we are sending an array
@@ -101,19 +107,18 @@ const deleteTour = (req, res) => {
     });
 };
 
-// app.get('/api/v1/tours', getAllTours);
-// app.post('/api/v1/tours', createTour);
-// app.get('/api/v1/tours/:id', getTour);
-// app.patch('/api/v1/tours/:id', updateTour);
-// app.delete('/api/v1/tours/:id', deleteTour);
+// this is also a middleware
+// middleware always execute in order they are written
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
 
-app
-    .route('/api/v1/tours')
-    .get(getAllTours)
-    .post(createTour);
-    
-app
-    .route('/api/v1/tours/:id')
+app.use((req, res, next) => {
+    console.log('Hello from middleware');
+    next();
+    // thats why this middle will not run if we get/post request come to '/api/v1/tours'
+    // because the route handler above end the req-res cycle
+});
+
+app.route('/api/v1/tours/:id')
     .get(getTour)
     .patch(updateTour)
     .delete(deleteTour);
