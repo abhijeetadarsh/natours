@@ -3,17 +3,9 @@ const fs = require('fs');
 
 const app = express();
 
-// app.get('/', (req, res) => {
-//     // res.status(200).send('Hello from the server side');
-//     res
-//         .status(200)
-//         .json({"message": 'Hello from the server side', "app":'natours'});
-//         // ^ this by default set content type to json
-// });
-
-// app.post('/', (req, res) => {
-//     res.send('You can post to this endpoint.....');
-// })
+app.use(express.json()); // this is middleware
+/* Middleware functions are functions that have access to the request object ( req ), the response object
+( res ), and the next middleware function in the application's request-response cycle */
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, 'utf-8'));
 
@@ -29,6 +21,29 @@ app.get('/api/v1/tours', (req, res) => {
             }
             // ^ this format is called jsent format
         });
+});
+
+app.post('/api/v1/tours', (req, res) => {
+    // console.log(req.body);
+    // body should be a property of req because we used the middleware l.no 6
+
+    const newId = tours.at(-1).id + 1;
+    const newTour = Object.assign({ id: newId }, req.body);
+    
+    tours.push(newTour);
+    fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), err => {
+        if(err) return console.log(err.message);
+        res
+            .status(201)
+            .json({
+                status: 'success',
+                data: {
+                    tour: newTour
+                }
+            });
+    });
+
+    // res.send('Done'); // we must send st to complete the req-res cycle
 });
 
 const port = 3000;
