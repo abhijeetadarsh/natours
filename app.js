@@ -1,7 +1,11 @@
-const express = require('express');
 const fs = require('fs');
+const express = require('express');
+const morgan = require('morgan');
 
 const app = express();
+
+// 1) MIDDLEWARES
+app.use(morgan('dev'));
 
 app.use(express.json()); // this is middleware
 /* Middleware functions are functions that have access to the request object ( req ), the response object
@@ -15,6 +19,8 @@ app.use((req, res, next) => {
 const tours = JSON.parse(
     fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, 'utf-8')
 );
+
+// 2) ROUTE HANDLERS
 
 const getAllTours = (req, res) => {
     console.log(req.requestTime);
@@ -107,22 +113,59 @@ const deleteTour = (req, res) => {
     });
 };
 
-// this is also a middleware
-// middleware always execute in order they are written
-app.route('/api/v1/tours').get(getAllTours).post(createTour);
+const getAllUsers = (req, res) => {
+    res.status(500).json({
+        status: 'error',
+        message: 'This route is not yet defined!',
+    });
+};
+const createUser = (req, res) => {
+    res.status(500).json({
+        status: 'error',
+        message: 'This route is not yet defined!',
+    });
+};
+const getUser = (req, res) => {
+    res.status(500).json({
+        status: 'error',
+        message: 'This route is not yet defined!',
+    });
+};
+const updateUser = (req, res) => {
+    res.status(500).json({
+        status: 'error',
+        message: 'This route is not yet defined!',
+    });
+};
+const deleteUser = (req, res) => {
+    res.status(500).json({
+        status: 'error',
+        message: 'This route is not yet defined!',
+    });
+};
 
-app.use((req, res, next) => {
-    console.log('Hello from middleware');
-    next();
-    // thats why this middle will not run if we get/post request come to '/api/v1/tours'
-    // because the route handler above end the req-res cycle
-});
+// 3) ROUTE
 
-app.route('/api/v1/tours/:id')
+const tourRouter = new express.Router();
+const userRouter = new express.Router();
+
+// mounting a new router to a route 
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+
+tourRouter.route('/').get(getAllTours).post(createTour);
+tourRouter.route('/:id')
     .get(getTour)
     .patch(updateTour)
     .delete(deleteTour);
 
+userRouter.route('/').get(getAllUsers).post(createUser);
+userRouter.route('/:id')
+    .get(getUser)
+    .patch(updateUser)
+    .delete(deleteUser);
+
+// 4) START THE SERVER
 const port = 3000;
 app.listen(port, () => {
     console.log(`App is running on port ${port}`);
